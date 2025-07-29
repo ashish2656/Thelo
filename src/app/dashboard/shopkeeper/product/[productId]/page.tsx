@@ -1,3 +1,4 @@
+import type { JSX } from 'react';
 import Image from 'next/image';
 import dbConnect from '@/lib/dbConnect';
 import Product from '@/models/Product';
@@ -23,11 +24,14 @@ async function getProductById(productId: string) {
 }
 
 // ✅ FIXED: Inline typed params instead of PageProps
-export default async function ProductDetailPage({
-  params,
-}: {
+type ProductDetailPageProps = {
   params: { productId: string };
-}) {
+};
+
+export default async function ProductDetailPage(
+  props: ProductDetailPageProps
+): Promise<JSX.Element | null> {
+  const { params } = await props;
   const product = await getProductById(params.productId);
 
   if (!product) {
