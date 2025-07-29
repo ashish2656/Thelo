@@ -5,7 +5,12 @@ import SellerProfile from '@/models/SellerProfile';
 import { notFound } from 'next/navigation';
 import { ProductActions } from '@/components/custom/ProductActions';
 
-// This function runs on the server to get clean, serializable data
+interface PageProps {
+  params: {
+    productId: string;
+  };
+}
+
 async function getProductById(productId: string) {
   await dbConnect();
   try {
@@ -15,7 +20,6 @@ async function getProductById(productId: string) {
       select: 'brandName'
     });
     if (!product) return null;
-    // This line is important to prevent data serialization errors
     return JSON.parse(JSON.stringify(product));
   } catch (error) {
     console.error("Failed to fetch product:", error);
@@ -23,19 +27,17 @@ async function getProductById(productId: string) {
   }
 }
 
-// This is the main Server Component for the page
-export default async function ProductDetailPage({ params }: { params: { productId: string } }) {
+export default async function ProductDetailPage({ params }: PageProps) {
   const product = await getProductById(params.productId);
 
   if (!product) {
     notFound();
-    return null; // Add fallback return for type safety
+    return null;
   }
 
   return (
     <main className="container mx-auto py-10">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
-        {/* Image Column */}
         <div>
           <div className="relative w-full h-96 rounded-lg overflow-hidden shadow-lg">
             <Image
@@ -47,7 +49,6 @@ export default async function ProductDetailPage({ params }: { params: { productI
           </div>
         </div>
 
-        {/* Details Column */}
         <div className="flex flex-col space-y-4">
           <h1 className="text-4xl font-extrabold tracking-tight">{product.name}</h1>
           <p className="text-lg text-muted-foreground">
@@ -76,8 +77,6 @@ export default async function ProductDetailPage({ params }: { params: { productI
                   </div>
               </div>
           </div>
-          
-          {/* This passes the clean product data to the interactive Client Component */}
           <ProductActions product={product} />
         </div>
       </div>
