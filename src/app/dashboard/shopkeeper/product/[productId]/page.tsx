@@ -1,4 +1,3 @@
-import type { JSX } from 'react';
 import Image from 'next/image';
 import dbConnect from '@/lib/dbConnect';
 import Product from '@/models/Product';
@@ -6,7 +5,6 @@ import SellerProfile from '@/models/SellerProfile';
 import { notFound } from 'next/navigation';
 import { ProductActions } from '@/components/custom/ProductActions';
 
-// Fetch product from MongoDB
 async function getProductById(productId: string) {
   await dbConnect();
   try {
@@ -15,24 +13,23 @@ async function getProductById(productId: string) {
       model: SellerProfile,
       select: 'brandName',
     });
-    if (!product) return null;
-    return JSON.parse(JSON.stringify(product));
+    return product ? JSON.parse(JSON.stringify(product)) : null;
   } catch (error) {
-    console.error('Error fetching product:', error);
+    console.error('Failed to fetch product:', error);
     return null;
   }
 }
 
-// ✅ FIXED: Inline typed params instead of PageProps
-type ProductDetailPageProps = {
-  params: { productId: string };
-};
-
-export default async function ProductDetailPage(
-  props: ProductDetailPageProps
-): Promise<JSX.Element | null> {
-  const { params } = await props;
-  const product = await getProductById(params.productId);
+// ✅ Updated for Next.js 15 - params is now a Promise
+export default async function ProductDetailPage({ 
+  params 
+}: { 
+  params: Promise<{ productId: string }> 
+}) {
+  // ✅ Await the params to get the actual values
+  const { productId } = await params;
+  
+  const product = await getProductById(productId);
 
   if (!product) {
     notFound();
@@ -42,6 +39,7 @@ export default async function ProductDetailPage(
   return (
     <main className="container mx-auto py-10">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+        {/* Image */}
         <div>
           <div className="relative w-full h-96 rounded-lg overflow-hidden shadow-lg">
             <Image
@@ -56,6 +54,7 @@ export default async function ProductDetailPage(
           </div>
         </div>
 
+        {/* Details */}
         <div className="flex flex-col space-y-4">
           <h1 className="text-4xl font-extrabold tracking-tight">
             {product.name}
@@ -63,19 +62,18 @@ export default async function ProductDetailPage(
           <p className="text-lg text-muted-foreground">
             Sold by{' '}
             <span className="text-primary font-semibold">
-              {product.seller.brandName}
+              {product.seller?.brandName || 'Unknown'}
             </span>
           </p>
           <div className="py-4">
             <p className="text-lg leading-relaxed">{product.description}</p>
           </div>
-
           <div className="border-t pt-4">
             <div className="grid grid-cols-2 gap-4 text-md">
               <div>
                 <p className="font-semibold">Price</p>
                 <p className="text-2xl font-bold text-primary">
-                  ${product.price.toFixed(2)}
+                  ₹{product.price.toFixed(2)}
                 </p>
               </div>
               <div>

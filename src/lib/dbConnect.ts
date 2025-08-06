@@ -3,47 +3,48 @@ import mongoose from 'mongoose';
 const MONGODB_URI = process.env.MONGODB_URI;
 
 if (!MONGODB_URI) {
-  throw new Error(
-    'Please define the MONGODB_URI environment variable inside .env.local'
-  );
+  throw new Error('Please define the MONGODB_URI environment variable inside .env.local');
 }
 
-// We use a global variable to cache the connection. This prevents creating a new
-// connection on every API call in a serverless environment.
 interface MongooseCache {
   conn: typeof mongoose | null;
   promise: Promise<typeof mongoose> | null;
 }
 
-let cached = (global as unknown as { mongoose?: MongooseCache }).mongoose;
+declare global {
+  // Avoid TypeScript error: Cannot redeclare block-scoped variable
+  var mongooseCache: MongooseCache | undefined;
+}
+
+let cached = global.mongooseCache;
 
 if (!cached) {
-  cached = (global as unknown as { mongoose?: MongooseCache }).mongoose = { conn: null, promise: null };
+  cached = global.mongooseCache = { conn: null, promise: null };
 }
 
 async function dbConnect() {
-  if (cached.conn) {
+  if (cached && cached.conn) {
     return cached.conn;
   }
 
-  if (!cached.promise) {
+  if (cached && !cached.promise) {
     const opts = {
       bufferCommands: false,
     };
 
-    cached.promise = mongoose.connect(MONGODB_URI!, opts).then((mongoose) => {
-      return mongoose;
-    });
+  cached.promise = mongoose.connect(MONGODB_URI as string, opts).then((mongoose) => mongoose);
   }
-  
+
   try {
-    cached.conn = await cached.promise;
+    if (cached) {
+      cached.conn = await cached.promise!;
+    }
   } catch (e) {
-    cached.promise = null;
+    if (cached) cached.promise = null;
     throw e;
   }
 
-  return cached.conn;
+  return cached?.conn;
 }
 
 export default dbConnect;

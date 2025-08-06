@@ -84,7 +84,7 @@ function ManageProductsView() {
                         <TableHeader><TableRow><TableHead className="w-[80px] bg-[#BEA093] border rounded-tl-lg">Image</TableHead><TableHead className="bg-[#BEA093] border">Product Name</TableHead><TableHead className="bg-[#BEA093] border">Status</TableHead><TableHead className="text-right bg-[#BEA093] border">Price</TableHead><TableHead className="text-right bg-[#BEA093] border">Stock</TableHead><TableHead className="w-[50px] bg-[#BEA093] border rounded-tr-lg">Actions</TableHead></TableRow></TableHeader>
                         <TableBody>
                             {products.map((product) => (
-                                <TableRow key={product._id}>
+                                <TableRow key={String(product._id)}>
                                     <TableCell><div className="relative h-16 w-16 rounded-md overflow-hidden"><Image src={product.imageUrl || 'https://placehold.co/64x64/eee/ccc?text=No+Image'} alt={product.name} fill className="object-cover"/></div></TableCell>
                                     <TableCell className="font-medium">{product.name}</TableCell>
                                     <TableCell><span className={`px-2 py-1 text-xs font-medium rounded-full ${product.status === 'Active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}`}>{product.status}</span></TableCell>
@@ -109,7 +109,7 @@ function ManageProductsView() {
                 {/* Card grid for small screens (hidden on md:) */}
                 <div className="grid grid-cols-1 sm :grid-cols-2 gap-4 md:hidden">
                     {products.map((product) => (
-                        <Card key={product._id}>
+                        <Card key={String(product._id)}>  
                             <CardContent className="p-4 flex flex-col justify-between h-full">
                                 <div className="flex gap-4">
                                     <div className="relative h-20 w-20 flex-shrink-0 rounded-md overflow-hidden">

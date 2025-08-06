@@ -10,17 +10,22 @@ interface DecodedToken {
   role: string;
 }
 
-export async function PUT(request: NextRequest) {
+export async function PUT(
+  request: NextRequest,
+  { params }: { params: Promise<{ orderId: string }> }
+) {
   await dbConnect();
 
   try {
-    // ✅ Extract orderId from the URL
-    const pathnameParts = request.nextUrl.pathname.split('/');
-    const orderId = pathnameParts[pathnameParts.length - 1];
+    // ✅ Await params to get the orderId (Next.js 15 requirement)
+    const { orderId } = await params;
 
     const { status } = await request.json();
 
-    const token = cookies().get('token')?.value;
+    // ✅ Await cookies() to get the cookie store (Next.js 15 requirement)
+    const cookieStore = await cookies();
+    const token = cookieStore.get('token')?.value;
+    
     if (!token) {
       return NextResponse.json({ message: 'Authentication required' }, { status: 401 });
     }
@@ -53,9 +58,9 @@ export async function PUT(request: NextRequest) {
     } catch (notificationError: unknown) {
       console.error('--- UPDATE_ORDER_API: NOTIFICATION CREATION FAILED ---');
       if (notificationError instanceof Error) {
-          console.error(notificationError.message);
+        console.error(notificationError.message);
       } else {
-          console.error(notificationError);
+        console.error(notificationError);
       }
       console.error('--------------------------------------------------');
     }
@@ -65,9 +70,9 @@ export async function PUT(request: NextRequest) {
   } catch (error: unknown) {
     console.error('--- UPDATE_ORDER_API CRASH ---');
     if (error instanceof Error) {
-        console.error(error.message);
+      console.error(error.message);
     } else {
-        console.error(error);
+      console.error(error);
     }
     return NextResponse.json({ message: 'Failed to update order status' }, { status: 500 });
   }
